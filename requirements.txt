@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+python-multipart
+qdrant-client
+neo4j
+pymupdf
+streamlit
+requests
+langchain
+sentence-transformers
+networkx
+tree_sitter
+tree_sitter_languages
+GitPython
+langgraph
+weasyprint
