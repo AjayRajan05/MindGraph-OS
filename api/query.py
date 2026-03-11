@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from app.services.retriever import retrieve
-from app.services.generator import generate
+from services.retriever import retrieve
+from services.generator import generate
 
 router=APIRouter()
 

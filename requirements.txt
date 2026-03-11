@@ -14,3 +14,4 @@ tree_sitter_languages
 GitPython
 langgraph
 weasyprint
+dotenv

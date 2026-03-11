@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 
-from app.api.upload import router as upload_router
-from app.api.query import router as query_router
-from app.api.graph import router as graph_router
+from api.upload import router as upload_router
+from api.query import router as query_router
+from api.graph import router as graph_router
 
-from app.db.qdrant_client import init_collection
+from db.qdrant_client import init_collection
 
 app=FastAPI()
 

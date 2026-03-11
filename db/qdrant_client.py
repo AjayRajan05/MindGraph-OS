@@ -1,6 +1,6 @@
 from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance
-from app.config import QDRANT_URL
+from config import QDRANT_URL
 
 COLLECTION = "mindgraph"
 

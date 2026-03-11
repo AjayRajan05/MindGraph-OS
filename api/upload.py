@@ -2,12 +2,12 @@ from fastapi import APIRouter, UploadFile
 import uuid
 import os
 
-from app.services.parser import parse_pdf
-from app.services.chunker import chunk_text
-from app.services.embedder import embed
-from app.db.qdrant_client import client, COLLECTION
+from services.parser import parse_pdf
+from services.chunker import chunk_text
+from services.embedder import embed
+from db.qdrant_client import client, COLLECTION
 from qdrant_client.models import PointStruct
-from app.services.graph_builder import build_graph
+from services.graph_builder import build_graph
 
 router = APIRouter()
 
@@ -15,7 +15,8 @@ router = APIRouter()
 
 async def upload(file:UploadFile):
 
-    path=f"/tmp/{uuid.uuid4()}.pdf"
+    doc_id=str(uuid.uuid4())
+    path=f"{doc_id}.pdf"
 
     with open(path,"wb") as f:
         f.write(await file.read())
@@ -40,6 +41,10 @@ async def upload(file:UploadFile):
 
     client.upsert(COLLECTION,points)
 
-    build_graph(chunks)
+    build_graph(chunks, doc_id)
 
-    return {"chunks":len(chunks)}
+    # clean up
+    if os.path.exists(path):
+        os.remove(path)
+
+    return {"chunks":len(chunks), "doc_id":doc_id}

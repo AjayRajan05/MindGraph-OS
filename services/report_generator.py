@@ -1,6 +1,6 @@
 from weasyprint import HTML
-from app.agents.staleness_agent import find_stale_concepts
-from app.agents.connection_agent import find_connections
+from agents.staleness_agent import find_stale_concepts
+from agents.connection_agent import find_connections
 
 
 def generate_report():

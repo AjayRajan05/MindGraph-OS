@@ -1,6 +1,6 @@
 from datetime import datetime
 import re
-from app.db.neo4j_client import driver
+from db.neo4j_client import driver
 
 def extract_concepts(text):
 

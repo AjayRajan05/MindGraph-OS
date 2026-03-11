@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.db.neo4j_client import driver
+from db.neo4j_client import driver
 
 router=APIRouter()
 

@@ -1,5 +1,5 @@
 import requests
-from app.config import OLLAMA_URL
+from config import OLLAMA_URL
 
 def generate(context, question):
 

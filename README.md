@@ -346,7 +346,7 @@ cd mindgraph-os
 ## 2️⃣ Install Dependencies
 
 ```
-pip install -r backend/requirements.txt
+pip install -r requirements.txt
 ```
 
 ---
@@ -385,7 +385,7 @@ uvicorn app.main:app --reload
 ## 6️⃣ Start Frontend
 
 ```
-streamlit run frontend/app.py
+streamlit run app.py
 ```
 
 ---
@@ -486,4 +486,4 @@ It helps the project grow and motivates further development.
 
 ---
 
-**MindGraph OS — where your knowledge becomes intelligent.**
+**MindGraph OS: Where your knowledge becomes intelligent.**

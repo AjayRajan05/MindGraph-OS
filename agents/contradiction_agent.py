@@ -1,5 +1,5 @@
-from app.db.qdrant_client import client, COLLECTION
-from app.services.embedder import embed
+from db.qdrant_client import client, COLLECTION
+from services.embedder import embed
 import requests
 
 OLLAMA="http://localhost:11434/api/generate"
