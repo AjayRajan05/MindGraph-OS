@@ -360,7 +360,7 @@ docker compose up -d
 This starts:
 
 * Neo4j
-* Qdrant
+* Qdrantll
 * Redis
 
 ---
@@ -377,7 +377,7 @@ ollama pull nomic-embed-text
 ## 5️⃣ Start Backend
 
 ```
-uvicorn app.main:app --reload
+uvicorn main:app --reload
 ```
 
 ---
