@@ -6,13 +6,14 @@ def retrieve(query):
 
     vec=embed(query)
 
-    results=client.search(
+    response = client.query_points(
         collection_name=COLLECTION,
-        query_vector=vec,
-        limit=5
+        query=vec,
+        limit=5,
+        with_payload=True,
     )
 
-    chunks=[r.payload["text"] for r in results]
+    chunks = [r.payload["text"] for r in response.points]
 
     graph_context=[]
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from services.retriever import retrieve
 from services.generator import generate
 
@@ -12,6 +12,9 @@ def query(q:str):
 
     context="\n".join(chunks)
 
-    answer=generate(context,q)
+    answer = generate(context, q)
 
-    return {"answer":answer}
+    if answer.startswith("[Generation error"):
+        raise HTTPException(status_code=502, detail=answer)
+
+    return {"answer": answer}
