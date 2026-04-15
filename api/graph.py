@@ -8,11 +8,36 @@ router=APIRouter()
 def graph():
 
     with driver.session() as session:
-
-        res=session.run(
-            "MATCH (a)-[r]->(b) RETURN a.name,b.name"
+        # Get nodes
+        nodes_res=session.run(
+            "MATCH (n) RETURN DISTINCT n.name as name, labels(n) as labels"
         )
+        
+        nodes=[]
+        for r in nodes_res:
+            node_type = r["labels"][0] if r["labels"] else "Unknown"
+            nodes.append({
+                "data": {
+                    "id": r["name"],
+                    "label": r["name"],
+                    "type": node_type
+                }
+            })
+        
+        # Get edges
+        edges_res=session.run(
+            "MATCH (a)-[r]->(b) RETURN a.name as source, b.name as target, type(r) as relationship"
+        )
+        
+        edges=[]
+        for r in edges_res:
+            edges.append({
+                "data": {
+                    "id": f"{r['source']}-{r['target']}",
+                    "source": r["source"],
+                    "target": r["target"],
+                    "label": r["relationship"] or "RELATED_TO"
+                }
+            })
 
-        edges=[(r["a.name"],r["b.name"]) for r in res]
-
-    return {"edges":edges}
+    return {"nodes": nodes, "edges": edges}
