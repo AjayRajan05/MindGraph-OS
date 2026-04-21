@@ -6,11 +6,8 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import requests
 import streamlit as st
-import streamlit as st
-import requests
-import websocket
-import json
 import streamlit.components.v1 as components
+import websocket
 
 API = os.getenv("API_URL", "http://localhost:8000")
 WS_URL = os.getenv("WS_URL", "ws://localhost:8000/ws")
@@ -141,7 +138,22 @@ with tab3:
             if data is None:
                 st.stop()
 
-            edges = data.get("edges", [])
+            raw_edges = data.get("edges", [])
+            edges = []
+            for edge in raw_edges:
+                if isinstance(edge, (list, tuple)) and len(edge) >= 2:
+                    source, target = edge[0], edge[1]
+                elif isinstance(edge, dict):
+                    payload = edge.get("data", {})
+                    source = payload.get("source")
+                    target = payload.get("target")
+                else:
+                    continue
+
+                if source is None or target is None:
+                    continue
+
+                edges.append((source, target))
 
             if not edges:
                 st.info("No graph data yet.")
@@ -151,12 +163,21 @@ with tab3:
                 fig = plt.figure()
                 nx.draw(G, with_labels=True)
                 st.pyplot(fig)
-    r=requests.get(f"{API}/graph")
-    
-    graph_data=r.json()
-    
-    # Cytoscape.js HTML component
-    html_code = f"""
+    r = safe_request("get", f"{API}/graph")
+    if r is None:
+        st.info("Graph data is unavailable until the backend is running.")
+    else:
+        graph_data = safe_json(r)
+        if graph_data is None:
+            st.stop()
+
+        graph_data = {
+            "nodes": graph_data.get("nodes", []),
+            "edges": graph_data.get("edges", []),
+        }
+
+        # Cytoscape.js HTML component
+        html_code = f"""
     <!DOCTYPE html>
     <html>
     <head>
@@ -319,5 +340,5 @@ with tab3:
     </body>
     </html>
     """
-    
-    components.html(html_code, height=700)
+
+        components.html(html_code, height=700)

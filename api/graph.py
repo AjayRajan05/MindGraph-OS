@@ -17,7 +17,7 @@ def graph():
         
         # Get nodes
         nodes_res=session.run(
-            "MATCH (n) RETURN DISTINCT n.name as name, labels(n) as labels"
+            "MATCH (n) RETURN DISTINCT coalesce(n.name, n.id) as name, labels(n) as labels"
         )
 
         # Build edge list, skipping any relationships where labels are missing.
@@ -29,6 +29,9 @@ def graph():
         
         nodes=[]
         for r in nodes_res:
+            if r["name"] is None:
+                continue
+
             node_type = r["labels"][0] if r["labels"] else "Unknown"
             nodes.append({
                 "data": {
@@ -40,11 +43,19 @@ def graph():
         
         # Get edges
         edges_res=session.run(
-            "MATCH (a)-[r]->(b) RETURN a.name as source, b.name as target, type(r) as relationship"
+            """
+            MATCH (a)-[r]->(b)
+            RETURN coalesce(a.name, a.id) as source,
+                   coalesce(b.name, b.id) as target,
+                   type(r) as relationship
+            """
         )
         
         edges=[]
         for r in edges_res:
+            if r["source"] is None or r["target"] is None:
+                continue
+
             edges.append({
                 "data": {
                     "id": f"{r['source']}-{r['target']}",
