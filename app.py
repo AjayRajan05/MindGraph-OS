@@ -119,14 +119,22 @@ with tab2:
                     st.write(data.get("answer"))
 
 with tab3:
-    r = safe_request("get", f"{API}/graph")
-    if r is None:
-        st.info("Graph data is unavailable until backend is running.")
-    else:
-        graph_data = safe_json(r)
-        if graph_data is None:
-            st.stop()
+    if "graph_data" not in st.session_state:
+        st.session_state.graph_data = None
 
+    if st.button("Generate Graph"):
+        r = safe_request("get", f"{API}/graph")
+        if r is None:
+            st.info("Graph data is unavailable until backend is running.")
+        else:
+            graph_data = safe_json(r)
+            if graph_data is not None:
+                st.session_state.graph_data = graph_data
+
+    graph_data = st.session_state.graph_data
+    if graph_data is None:
+        st.info("Click 'Generate Graph' after uploading a PDF to load the graph.")
+    else:
         # Cytoscape.js HTML component
         html_code = f"""
     <!DOCTYPE html>
@@ -206,41 +214,49 @@ with tab3:
             // Initialize Cytoscape
             try {{
                 var graphData = {json.dumps(graph_data)};
-                
-                if(!graphData.nodes || !graphData.edges) {{
+                var nodes = Array.isArray(graphData.nodes) ? graphData.nodes : [];
+                var edges = Array.isArray(graphData.edges) ? graphData.edges : [];
+                var elements = [];
+                var nodeIdSet = {{}};
+
+                nodes.forEach(function(node) {{
+                    if(node && node.data && node.data.id) {{
+                        var nodeType = node.data.type || 'Unknown';
+                        elements.push({{
+                            data: {{
+                                id: node.data.id,
+                                label: node.data.label || node.data.id,
+                                type: nodeType,
+                                color: window.getNodeColor(nodeType)
+                            }}
+                        }});
+                        nodeIdSet[node.data.id] = true;
+                    }}
+                }});
+
+                edges.forEach(function(edge) {{
+                    if(edge && edge.data && edge.data.source && edge.data.target) {{
+                        if(!nodeIdSet[edge.data.source] || !nodeIdSet[edge.data.target]) {{
+                            return;
+                        }}
+                        elements.push({{
+                            data: {{
+                                id: edge.data.id || (edge.data.source + '-' + edge.data.target),
+                                source: edge.data.source,
+                                target: edge.data.target,
+                                label: edge.data.label || 'RELATED_TO'
+                            }}
+                        }});
+                    }}
+                }});
+
+                if(elements.length === 0) {{
                     console.error('Invalid graph data:', graphData);
                     document.getElementById('cy').innerHTML = '<div style="padding: 20px; color: red;">Error: Invalid graph data received from server</div>';
                 }} else {{
                     window.cy = cytoscape({{
                         container: document.getElementById('cy'),
-                        elements: [
-                            ...graphData.nodes.map(node => ({{
-                                data: node.data,
-                                style: {{
-                                    'background-color': window.getNodeColor(node.data.type),
-                                    'label': node.data.label,
-                                    'text-valign': 'center',
-                                    'text-halign': 'center',
-                                    'color': '#fff',
-                                    'font-size': '12px',
-                                    'border-width': 2,
-                                    'border-color': '#333'
-                                }}
-                            }})),
-                            ...graphData.edges.map(edge => ({{
-                                data: edge.data,
-                                style: {{
-                                    'width': 2,
-                                    'line-color': '#666',
-                                    'target-arrow-color': '#666',
-                                    'target-arrow-shape': 'triangle',
-                                    'curve-style': 'bezier',
-                                    'label': edge.data.label,
-                                    'font-size': '10px',
-                                    'color': '#333'
-                                }}
-                            }}))
-                        ],
+                        elements: elements,
                         layout: {{
                             name: 'cose',
                             idealEdgeLength: 100,
@@ -264,7 +280,15 @@ with tab3:
                                 selector: 'node',
                                 style: {{
                                     'width': '60px',
-                                    'height': '60px'
+                                    'height': '60px',
+                                    'background-color': 'data(color)',
+                                    'label': 'data(label)',
+                                    'text-valign': 'center',
+                                    'text-halign': 'center',
+                                    'color': '#fff',
+                                    'font-size': '12px',
+                                    'border-width': 2,
+                                    'border-color': '#333'
                                 }}
                             }},
                             {{
@@ -273,7 +297,11 @@ with tab3:
                                     'width': 2,
                                     'line-color': '#666',
                                     'target-arrow-color': '#666',
-                                    'target-arrow-shape': 'triangle'
+                                    'target-arrow-shape': 'triangle',
+                                    'curve-style': 'bezier',
+                                    'label': 'data(label)',
+                                    'font-size': '10px',
+                                    'color': '#333'
                                 }}
                             }}
                         ]
